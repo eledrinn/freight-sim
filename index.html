@@ -1,128 +1,807 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Freight-Sim | Simulate Shipping Futures</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
   <style>
-    body { 
-      background: #0f1117; 
-      color: white; 
-      font-family: Arial; 
-      padding: 40px;
+    :root{
+      --bg:#0b0f14;
+      --panel:#111824;
+      --panel2:#0f1520;
+      --text:#e8eef7;
+      --muted:#9fb0c7;
+      --border:#1f2a3a;
+      --accent:#4da6ff;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 14px;
     }
-    h1 { margin-bottom: 5px; }
-    p { color: #aaa; }
-    input, select, button {
-      margin: 5px;
-      padding: 6px;
-      background: #1c1f26;
-      color: white;
-      border: 1px solid #333;
-      border-radius: 4px;
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height:1.35;
     }
-    button {
-      cursor: pointer;
-      background: #4da6ff;
-      border: none;
+    .wrap{max-width:1100px; margin:0 auto; padding:28px 18px 60px;}
+    .topbar{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:18px;
     }
-    canvas {
-      background: #1c1f26;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    .brand h1{margin:0; font-size:26px; letter-spacing:.2px}
+    .brand p{margin:6px 0 0; color:var(--muted); font-size:14px; max-width:720px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border:1px solid var(--border); background:rgba(255,255,255,.02);
+      border-radius:999px; color:var(--muted); font-size:12px; white-space:nowrap;
     }
+    .grid{
+      display:grid; grid-template-columns: 1.25fr .75fr; gap:16px;
+    }
+    @media (max-width: 960px){
+      .grid{grid-template-columns:1fr; }
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .card h2{margin:0 0 10px; font-size:16px}
+    .sub{color:var(--muted); font-size:13px; margin:0 0 12px}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    label{display:block; font-size:12px; color:var(--muted); margin:0 0 6px}
+    .field{min-width: 160px; flex: 1;}
+    select,input{
+      width:100%;
+      padding:10px 10px;
+      background:var(--panel2);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:10px;
+      outline:none;
+    }
+    input[type="number"]{appearance:textfield}
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button, a.btn{
+      cursor:pointer;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid transparent;
+      background:var(--accent);
+      color:#04111f;
+      font-weight:800;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      justify-content:center;
+    }
+    button.secondary, a.btn.secondary{
+      background:transparent;
+      border-color:var(--border);
+      color:var(--text);
+      font-weight:700;
+    }
+    button.danger{
+      background:transparent;
+      border-color:rgba(239,68,68,.35);
+      color:var(--danger);
+    }
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+    .kpi{
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+    .kpi .t{color:var(--muted); font-size:12px}
+    .kpi .v{font-size:18px; margin-top:4px; font-weight:900}
+    .kpi .s{color:var(--muted); font-size:12px; margin-top:2px}
+    .pos{color:var(--accent2)}
+    .neg{color:var(--danger)}
+    .warn{color:var(--warn)}
+    .tiny{font-size:12px; color:var(--muted)}
+    .divider{height:1px; background:var(--border); margin:14px 0}
+    canvas{width:100% !important; background:rgba(0,0,0,0.12); border-radius:12px}
+    #chart{height:360px !important;}
+    #fanChart{height:280px !important;}
+    .footerNote{margin-top:14px; color:var(--muted); font-size:12px}
+    .badgePro{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 8px; border-radius:999px;
+      border:1px solid rgba(77,166,255,.35);
+      background:rgba(77,166,255,.08);
+      color:var(--text);
+      font-size:12px;
+      font-weight:800;
+    }
+    .lock{
+      border:1px dashed rgba(159,176,199,.35);
+      background:rgba(255,255,255,.02);
+      border-radius:12px;
+      padding:12px;
+      margin-top:12px;
+    }
+    .twoCol{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    @media (max-width: 720px){
+      .twoCol{grid-template-columns:1fr;}
+    }
+    a{color:var(--accent); text-decoration:none}
   </style>
 </head>
+
 <body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Freight-Sim</h1>
+        <p>
+          Educational freight market sandbox using a <b>synthetic proxy series</b> (illustrative only).
+          No brokerage, no execution. This is a simulator + scenario generator.
+        </p>
+        <div style="margin-top:10px" class="pill">
+          <span>⚠️</span>
+          <span><b>Not investment advice.</b> Derivatives & leverage can cause rapid losses.</span>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end">
+        <div class="pill"><span>Data:</span><span id="dataRange">Loading…</span></div>
+        <div class="pill" id="planPill">Plan: Loading…</div>
+      </div>
+    </div>
 
-<h1>Freight-Sim</h1>
-<p>Educational freight index simulator (synthetic proxy data).</p>
+    <div class="grid">
+      <div class="card">
+        <h2>Freight Index Proxy</h2>
+        <p class="sub">Chart updates from <code>freight_index_daily.json</code> in your repo.</p>
+        <canvas id="chart"></canvas>
+        <div class="footerNote">
+          Tip: Use the simulator presets to zoom into volatile windows.
+        </div>
 
-<canvas id="chart" width="900" height="400"></canvas>
+        <div class="divider"></div>
 
-<h2>Historical Simulator</h2>
+        <h2>Scenario Sandbox <span id="proBadge"></span></h2>
+        <p class="sub">
+          Statistical scenarios based on historical volatility & mean reversion. <b>Not a forecast.</b>
+        </p>
 
-<label>Entry Date:</label>
-<input type="date" id="entryDate">
+        <div class="row">
+          <div class="field">
+            <label>Horizon</label>
+            <select id="horizon">
+              <option value="30">30 days</option>
+              <option value="90" selected>90 days</option>
+              <option value="180">180 days (Pro)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Scenario</label>
+            <select id="scenario">
+              <option value="bear">Bear</option>
+              <option value="base" selected>Base</option>
+              <option value="bull">Bull</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Volatility</label>
+            <select id="volMode">
+              <option value="low">Low</option>
+              <option value="base" selected>Base</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mean reversion</label>
+            <select id="mrMode">
+              <option value="none">None</option>
+              <option value="weak" selected>Weak</option>
+              <option value="med">Medium</option>
+              <option value="strong">Strong</option>
+            </select>
+          </div>
+        </div>
 
-<label>Exit Date:</label>
-<input type="date" id="exitDate">
+        <div class="btnrow">
+          <button id="runScenarioBtn">Run scenarios</button>
+          <button id="pathsBtn" class="secondary">Paths: <span id="pathsLabel">—</span></button>
+        </div>
 
-<label>Direction:</label>
-<select id="direction">
-  <option value="long">Long</option>
-  <option value="short">Short</option>
-</select>
+        <div class="divider"></div>
 
-<label>Leverage (1-5x):</label>
-<input type="number" id="leverage" value="1" min="1" max="5">
+        <canvas id="fanChart"></canvas>
 
-<button onclick="runSim()">Run Simulation</button>
+        <div class="twoCol" style="margin-top:12px">
+          <div class="kpi">
+            <div class="t">End level (P10 / P50 / P90)</div>
+            <div class="v" id="kEnd">—</div>
+            <div class="s tiny" id="kEndSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">Tail risk</div>
+            <div class="v" id="kTail">—</div>
+            <div class="s tiny" id="kTailSub">—</div>
+          </div>
+        </div>
 
-<h3 id="result"></h3>
+        <div class="footerNote">
+          “Scenario” = statistical simulation. It can be wrong. Use for learning and stress-testing intuition only.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Historical Simulator</h2>
+        <p class="sub">Select real available dates (dropdown). Computes P&amp;L, drawdown, and volatility.</p>
+
+        <div class="row">
+          <div class="field">
+            <label>Direction</label>
+            <select id="direction">
+              <option value="long">Long</option>
+              <option value="short">Short</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Notional ($)</label>
+            <input id="notional" type="number" value="10000" min="100" step="100" />
+          </div>
+
+          <div class="field">
+            <label>Leverage (1–5x)</label>
+            <input id="leverage" type="number" value="1" min="1" max="5" step="1" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <div class="field">
+            <label>Entry date</label>
+            <select id="entryDate"></select>
+          </div>
+          <div class="field">
+            <label>Exit date</label>
+            <select id="exitDate"></select>
+          </div>
+        </div>
+
+        <div class="btnrow">
+          <button id="runBtn">Run</button>
+          <button id="preset1y" class="secondary">Preset: 1Y</button>
+          <button id="preset3y" class="secondary">Preset: 3Y</button>
+          <button id="presetAll" class="secondary">Preset: Max</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="t">P&amp;L</div>
+            <div class="v" id="kPnl">—</div>
+            <div class="s" id="kPnlSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">Return</div>
+            <div class="v" id="kRet">—</div>
+            <div class="s" id="kRetSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">Max drawdown</div>
+            <div class="v" id="kMdd">—</div>
+            <div class="s" id="kMddSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">Vol (ann.)</div>
+            <div class="v" id="kVol">—</div>
+            <div class="s" id="kVolSub">—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="tiny" id="warnings"></div>
+
+        <div class="lock" id="proBox">
+          <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center">
+            <div>
+              <div style="font-weight:900">Unlock Pro</div>
+              <div class="tiny">2000 paths • 180-day horizon • extra risk stats • exports (next)</div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap">
+              <a class="btn" id="upgradeBtn" href="#" target="_blank" rel="noopener">Upgrade ($19/mo)</a>
+              <button class="secondary" id="testUnlockBtn" title="For you only">Dev unlock</button>
+              <button class="danger" id="lockBtn" style="display:none">Lock</button>
+            </div>
+          </div>
+          <div class="tiny" style="margin-top:10px">
+            MVP gating: Pro is stored on this device. Later we’ll add accounts + webhooks.
+          </div>
+        </div>
+
+        <div class="footerNote">
+          This MVP uses synthetic proxy data to avoid data licensing issues. Replace with licensed/authorized data later.
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
+  /***********************
+   * CONFIG YOU EDIT
+   ***********************/
+  const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/REPLACE_ME"; // <-- replace with your Stripe Checkout link
 
-let data = [];
+  /***********************
+   * STATE
+   ***********************/
+  let series = [];      // [{d, v}]
+  let dates = [];       // ["YYYY-MM-DD", ...]
+  let values = [];      // [number, ...]
+  let chart = null;
+  let fanChart = null;
+  let derived = null;
 
-fetch("freight_index_daily.json")
-.then(res => res.json())
-.then(json => {
-  data = json.series;
-  renderChart();
-});
+  const PRO_KEY = "freightSimPro_v1";
 
-function renderChart() {
-  const ctx = document.getElementById('chart');
-  const labels = data.map(d => d.d);
-  const values = data.map(d => d.v);
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Freight Index Proxy',
-        data: values,
-        borderColor: '#4da6ff',
-        borderWidth: 1,
-        pointRadius: 0
-      }]
-    },
-    options: {
-      scales: {
-        x: { display: false },
-        y: { beginAtZero: false }
-      }
-    }
-  });
-}
-
-function runSim() {
-  const entry = document.getElementById("entryDate").value;
-  const exit = document.getElementById("exitDate").value;
-  const direction = document.getElementById("direction").value;
-  const leverage = parseFloat(document.getElementById("leverage").value);
-
-  const entryObj = data.find(d => d.d === entry);
-  const exitObj = data.find(d => d.d === exit);
-
-  if (!entryObj || !exitObj) {
-    alert("Select valid trading dates from the dataset.");
-    return;
+  function isPro(){
+    return localStorage.getItem(PRO_KEY) === "1";
   }
 
-  let r = (exitObj.v - entryObj.v) / entryObj.v;
-  if (direction === "short") r = -r;
+  function setPro(on){
+    localStorage.setItem(PRO_KEY, on ? "1" : "0");
+    syncProUI();
+  }
 
-  const pnl = 10000 * leverage * r;
+  // Optional: allow temporary unlock via ?unlock=1 (for you/testing)
+  (function handleUnlockQuery(){
+    const params = new URLSearchParams(location.search);
+    if(params.get("unlock") === "1"){
+      setPro(true);
+      // Clean URL
+      params.delete("unlock");
+      const next = location.pathname + (params.toString() ? "?" + params.toString() : "");
+      history.replaceState({}, "", next);
+    }
+  })();
 
-  document.getElementById("result").innerText =
-    "P&L: $" + pnl.toFixed(2);
-}
+  function fmtMoney(x){
+    const sign = x < 0 ? "-" : "";
+    const abs = Math.abs(x);
+    return sign + "$" + abs.toLocaleString(undefined,{maximumFractionDigits:2, minimumFractionDigits:2});
+  }
+  function fmtPct(x){
+    const sign = x < 0 ? "" : "";
+    return sign + (x*100).toFixed(2) + "%";
+  }
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
+  function setText(id, txt, cls){
+    const el = document.getElementById(id);
+    el.className = cls || "";
+    el.textContent = txt;
+  }
+
+  function logReturns(arr){
+    const r = [];
+    for(let i=1;i<arr.length;i++) r.push(Math.log(arr[i]/arr[i-1]));
+    return r;
+  }
+  function stdPop(arr){
+    if(arr.length === 0) return 0;
+    const m = arr.reduce((a,b)=>a+b,0)/arr.length;
+    const v = arr.reduce((a,b)=>a+(b-m)*(b-m),0)/arr.length;
+    return Math.sqrt(v);
+  }
+  function maxDrawdown(equity){
+    let peak = equity[0];
+    let mdd = 0;
+    for(let i=1;i<equity.length;i++){
+      peak = Math.max(peak, equity[i]);
+      const dd = equity[i]/peak - 1;
+      mdd = Math.min(mdd, dd);
+    }
+    return mdd;
+  }
+
+  function populateDateSelects(){
+    const entrySel = document.getElementById("entryDate");
+    const exitSel  = document.getElementById("exitDate");
+    entrySel.innerHTML = "";
+    exitSel.innerHTML = "";
+
+    for(const d of dates){
+      const o1 = document.createElement("option");
+      o1.value = d; o1.textContent = d;
+      entrySel.appendChild(o1);
+
+      const o2 = document.createElement("option");
+      o2.value = d; o2.textContent = d;
+      exitSel.appendChild(o2);
+    }
+
+    const n = dates.length;
+    const entryIdx = Math.max(0, n - 252);
+    entrySel.value = dates[entryIdx];
+    exitSel.value  = dates[n-1];
+  }
+
+  function applyPreset(days){
+    const entrySel = document.getElementById("entryDate");
+    const exitSel  = document.getElementById("exitDate");
+    const n = dates.length;
+    const entryIdx = Math.max(0, n - days);
+    entrySel.value = dates[entryIdx];
+    exitSel.value  = dates[n-1];
+    runSim();
+  }
+
+  function renderChart(){
+    const ctx = document.getElementById("chart").getContext("2d");
+    if(chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: dates,
+        datasets: [{
+          label: "Freight Index Proxy",
+          data: values,
+          borderColor: "#4da6ff",
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0.15
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { display: false },
+          y: { ticks: { color: "#9fb0c7" }, grid: { color: "rgba(255,255,255,0.06)" } }
+        },
+        plugins: {
+          legend: { labels: { color: "#e8eef7" } }
+        }
+      }
+    });
+  }
+
+  function syncProUI(){
+    const pro = isPro();
+    document.getElementById("planPill").textContent = pro ? "Plan: Pro" : "Plan: Free";
+    document.getElementById("proBadge").innerHTML = pro ? ` <span class="badgePro">PRO</span>` : "";
+    document.getElementById("pathsLabel").textContent = pro ? "2000" : "200";
+
+    const lockBtn = document.getElementById("lockBtn");
+    lockBtn.style.display = pro ? "inline-flex" : "none";
+
+    // Horizon gating
+    const horizon = document.getElementById("horizon");
+    const opt180 = [...horizon.options].find(o => o.value === "180");
+    if(!pro){
+      // if currently on 180, bump down to 90
+      if(horizon.value === "180") horizon.value = "90";
+      if(opt180) opt180.textContent = "180 days (Pro)";
+    } else {
+      if(opt180) opt180.textContent = "180 days";
+    }
+
+    // Pro box: show either upgrade prompt or "Pro enabled"
+    const proBox = document.getElementById("proBox");
+    proBox.querySelector("div[style*='font-weight:900']").textContent = pro ? "Pro enabled" : "Unlock Pro";
+  }
+
+  /***********************
+   * HISTORICAL SIM
+   ***********************/
+  function runSim(){
+    const entry = document.getElementById("entryDate").value;
+    const exit  = document.getElementById("exitDate").value;
+    const dir   = document.getElementById("direction").value;
+    const lev   = clamp(parseFloat(document.getElementById("leverage").value || "1"), 1, 5);
+    const notional = Math.max(100, parseFloat(document.getElementById("notional").value || "10000"));
+
+    document.getElementById("leverage").value = lev;
+    document.getElementById("notional").value = notional;
+
+    const i0 = dates.indexOf(entry);
+    const i1 = dates.indexOf(exit);
+
+    if(i0 < 0 || i1 < 0){
+      document.getElementById("warnings").textContent = "Pick valid dates from the dropdowns.";
+      return;
+    }
+    if(i1 <= i0){
+      document.getElementById("warnings").textContent = "Exit date must be after entry date.";
+      return;
+    }
+
+    const P0 = values[i0];
+    const slice = values.slice(i0, i1+1);
+
+    const equity = [];
+    for(let k=0;k<slice.length;k++){
+      const rr = (slice[k] - P0) / P0;
+      const effective = (dir === "short") ? -rr : rr;
+      equity.push(notional * (1 + lev * effective));
+    }
+
+    const pnl = equity[equity.length-1] - notional;
+    const ret = pnl / notional;
+
+    const lrs = logReturns(slice);
+    const volAnn = stdPop(lrs) * Math.sqrt(252);
+    const mdd = maxDrawdown(equity);
+
+    let worst = {d: null, r: 999};
+    let best  = {d: null, r: -999};
+    for(let i=i0+1;i<=i1;i++){
+      const rr = values[i]/values[i-1]-1;
+      if(rr < worst.r){ worst = {d: dates[i], r: rr}; }
+      if(rr > best.r){ best = {d: dates[i], r: rr}; }
+    }
+
+    setText("kPnl", fmtMoney(pnl), pnl >= 0 ? "pos" : "neg");
+    setText("kPnlSub", `Notional ${fmtMoney(notional)} • ${dir.toUpperCase()} • ${lev}x`, "tiny");
+
+    setText("kRet", fmtPct(ret), ret >= 0 ? "pos" : "neg");
+    setText("kRetSub", `${entry} → ${exit}`, "tiny");
+
+    setText("kMdd", fmtPct(mdd), "warn");
+    setText("kMddSub", `Best day ${best.d}: ${fmtPct(best.r)} • Worst day ${worst.d}: ${fmtPct(worst.r)}`, "tiny");
+
+    setText("kVol", (volAnn*100).toFixed(1) + "%", "");
+    setText("kVolSub", `Annualized vol (slice)`, "tiny");
+
+    const warn = [];
+    const minEq = Math.min(...equity);
+    if(minEq <= 0.3 * notional){
+      warn.push(`⚠️ Liquidation risk: simulated equity dipped below 30% of notional (min ${fmtMoney(minEq)}). Real margin rules vary.`);
+    }
+    if(Math.abs(mdd) > 0.35){
+      warn.push(`⚠️ Large drawdown: max drawdown exceeded 35% in this window.`);
+    }
+    warn.push(`ℹ️ Educational only. Uses synthetic proxy data; outputs are illustrative.`);
+    document.getElementById("warnings").innerHTML = warn.map(x => `<div class="tiny" style="margin:6px 0">${x}</div>`).join("");
+  }
+
+  /***********************
+   * SCENARIO SANDBOX (C-lite)
+   ***********************/
+  function randn(){
+    // Box-Muller
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  function percentile(sortedArr, p){
+    if(sortedArr.length === 0) return NaN;
+    const idx = (sortedArr.length - 1) * p;
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if(lo === hi) return sortedArr[lo];
+    const w = idx - lo;
+    return sortedArr[lo] * (1 - w) + sortedArr[hi] * w;
+  }
+
+  function runScenarios(){
+    const pro = isPro();
+
+    const horizonSel = document.getElementById("horizon");
+    let horizon = parseInt(horizonSel.value, 10);
+
+    // Gate 180 days
+    if(horizon === 180 && !pro){
+      horizon = 90;
+      horizonSel.value = "90";
+      alert("180-day horizon is Pro. Switching to 90 days.");
+    }
+
+    const scenario = document.getElementById("scenario").value;
+    const volMode = document.getElementById("volMode").value;
+    const mrMode = document.getElementById("mrMode").value;
+
+    const paths = pro ? 2000 : 200;
+    document.getElementById("pathsLabel").textContent = String(paths);
+
+    // Defaults from derived if available; otherwise infer from last 3y slice
+    const startLevel = values[values.length - 1];
+    const dt = 1/252;
+
+    // sigma annual
+    let sigma = derived?.stats?.vol?.vol_365d_ann ?? 0.45;
+    if(volMode === "low") sigma *= 0.7;
+    if(volMode === "high") sigma *= 1.35;
+
+    // mean level anchor
+    const muLevel = derived?.stats?.mean_levels?.mean_3y ?? average(values.slice(Math.max(0, values.length - 756)));
+    let mu = Math.log(muLevel);
+
+    // scenario drift as a gentle shift of the mean
+    // bear/base/bull adjusts muLevel by +/- 10% (educational)
+    const driftShift = (scenario === "bull") ? 1.10 : (scenario === "bear" ? 0.90 : 1.00);
+    mu = Math.log(muLevel * driftShift);
+
+    // mean reversion strength k (per step in log space)
+    let k;
+    if(mrMode === "none") k = 0.0;
+    else if(mrMode === "weak") k = 0.008;
+    else if(mrMode === "med") k = 0.015;
+    else k = 0.03;
+
+    // simulate
+    const endLevels = new Array(paths);
+    let probDrawdown30 = 0;
+    let probUp30 = 0;
+
+    // For chart: we’ll compute P10/P50/P90 each day using sampled paths
+    // To keep it fast in-browser, store a subset of paths for the daily distribution.
+    const storeEveryPath = pro ? 600 : 200; // cap memory
+    const stored = Math.min(paths, storeEveryPath);
+    const pathStore = Array.from({length: stored}, () => new Array(horizon+1));
+
+    for(let p=0;p<paths;p++){
+      let x = Math.log(startLevel);
+      let level = startLevel;
+      let peak = startLevel;
+      let maxDD = 0;
+
+      // store initial
+      if(p < stored) pathStore[p][0] = startLevel;
+
+      for(let t=1;t<=horizon;t++){
+        const z = randn();
+        x = x + k*(mu - x)*dt + sigma*Math.sqrt(dt)*z;
+        level = Math.max(50, Math.exp(x));
+
+        if(p < stored) pathStore[p][t] = level;
+
+        peak = Math.max(peak, level);
+        const dd = level/peak - 1;
+        maxDD = Math.min(maxDD, dd);
+      }
+
+      endLevels[p] = level;
+      if(maxDD <= -0.30) probDrawdown30++;
+      if(level >= startLevel*1.30) probUp30++;
+    }
+
+    probDrawdown30 /= paths;
+    probUp30 /= paths;
+
+    const sortedEnd = [...endLevels].sort((a,b)=>a-b);
+    const p10 = percentile(sortedEnd, 0.10);
+    const p50 = percentile(sortedEnd, 0.50);
+    const p90 = percentile(sortedEnd, 0.90);
+
+    setText("kEnd", `${p10.toFixed(0)} / ${p50.toFixed(0)} / ${p90.toFixed(0)}`, "");
+    setText("kEndSub", `Start ${startLevel.toFixed(0)} • ${horizon}d • ${paths} paths`, "tiny");
+
+    setText("kTail", `${(probDrawdown30*100).toFixed(0)}%`, "warn");
+    setText("kTailSub", `P(max drawdown ≥ 30%) • P(end ≥ +30%): ${(probUp30*100).toFixed(0)}%`, "tiny");
+
+    renderFanChart(pathStore, horizon);
+  }
+
+  function average(arr){
+    if(!arr.length) return 0;
+    return arr.reduce((a,b)=>a+b,0)/arr.length;
+  }
+
+  function renderFanChart(pathStore, horizon){
+    // For each day, compute P10/P50/P90 across stored paths
+    const labels = [];
+    const p10 = [];
+    const p50 = [];
+    const p90 = [];
+
+    for(let t=0;t<=horizon;t++){
+      labels.push(String(t));
+      const dayVals = pathStore.map(p => p[t]).filter(v => Number.isFinite(v));
+      dayVals.sort((a,b)=>a-b);
+      p10.push(percentile(dayVals, 0.10));
+      p50.push(percentile(dayVals, 0.50));
+      p90.push(percentile(dayVals, 0.90));
+    }
+
+    const ctx = document.getElementById("fanChart").getContext("2d");
+    if(fanChart) fanChart.destroy();
+
+    // Fan chart via 3 lines: P10, P50, P90
+    fanChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          { label: "P10", data: p10, borderColor: "rgba(239,68,68,0.8)", borderWidth: 1.2, pointRadius: 0, tension: 0.2 },
+          { label: "P50", data: p50, borderColor: "rgba(77,166,255,0.9)", borderWidth: 1.6, pointRadius: 0, tension: 0.2 },
+          { label: "P90", data: p90, borderColor: "rgba(34,197,94,0.8)", borderWidth: 1.2, pointRadius: 0, tension: 0.2 }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{ ticks:{ color:"#9fb0c7" }, grid:{ color:"rgba(255,255,255,0.06)" }, title:{ display:true, text:"Days forward", color:"#9fb0c7" } },
+          y:{ ticks:{ color:"#9fb0c7" }, grid:{ color:"rgba(255,255,255,0.06)" } }
+        },
+        plugins:{
+          legend:{ labels:{ color:"#e8eef7" } }
+        }
+      }
+    });
+  }
+
+  /***********************
+   * INIT
+   ***********************/
+  function initProButtons(){
+    const upgradeBtn = document.getElementById("upgradeBtn");
+    upgradeBtn.href = STRIPE_CHECKOUT_URL;
+
+    document.getElementById("testUnlockBtn").addEventListener("click", () => {
+      // For you only. When you have real Stripe + unlock flow, remove this.
+      setPro(true);
+      alert("Pro unlocked on this device (dev).");
+    });
+
+    document.getElementById("lockBtn").addEventListener("click", () => {
+      setPro(false);
+      alert("Pro locked.");
+    });
+  }
+
+  // Load derived (optional)
+  fetch("freight_index_derived.json")
+    .then(r => r.json())
+    .then(j => { derived = j; })
+    .catch(()=>{});
+
+  fetch("freight_index_daily.json")
+    .then(r => r.json())
+    .then(json => {
+      series = json.series || [];
+      dates  = series.map(x => x.d);
+      values = series.map(x => x.v);
+
+      const start = dates[0];
+      const end   = dates[dates.length-1];
+      document.getElementById("dataRange").textContent = `${start} → ${end}`;
+
+      populateDateSelects();
+      renderChart();
+      runSim();
+
+      initProButtons();
+      syncProUI();
+
+      // run scenarios once by default
+      runScenarios();
+    })
+    .catch(err => {
+      document.getElementById("dataRange").textContent = "Failed to load data";
+      console.error(err);
+      alert("Could not load freight_index_daily.json. Make sure it sits next to index.html in the repo.");
+    });
+
+  // Wire buttons
+  document.getElementById("runBtn").addEventListener("click", runSim);
+  document.getElementById("preset1y").addEventListener("click", () => applyPreset(252));
+  document.getElementById("preset3y").addEventListener("click", () => applyPreset(756));
+  document.getElementById("presetAll").addEventListener("click", () => applyPreset(dates.length-1));
+
+  document.getElementById("runScenarioBtn").addEventListener("click", runScenarios);
+  document.getElementById("pathsBtn").addEventListener("click", () => {
+    alert(isPro() ? "Pro: 2000 paths enabled." : "Free: 200 paths. Upgrade to unlock 2000.");
+  });
 </script>
-
 </body>
 </html>

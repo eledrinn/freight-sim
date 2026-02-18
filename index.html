@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Freight-Sim | Simulate Shipping Futures</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { 
+      background: #0f1117; 
+      color: white; 
+      font-family: Arial; 
+      padding: 40px;
+    }
+    h1 { margin-bottom: 5px; }
+    p { color: #aaa; }
+    input, select, button {
+      margin: 5px;
+      padding: 6px;
+      background: #1c1f26;
+      color: white;
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+    button {
+      cursor: pointer;
+      background: #4da6ff;
+      border: none;
+    }
+    canvas {
+      background: #1c1f26;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Freight-Sim</h1>
+<p>Educational freight index simulator (synthetic proxy data).</p>
+
+<canvas id="chart" width="900" height="400"></canvas>
+
+<h2>Historical Simulator</h2>
+
+<label>Entry Date:</label>
+<input type="date" id="entryDate">
+
+<label>Exit Date:</label>
+<input type="date" id="exitDate">
+
+<label>Direction:</label>
+<select id="direction">
+  <option value="long">Long</option>
+  <option value="short">Short</option>
+</select>
+
+<label>Leverage (1-5x):</label>
+<input type="number" id="leverage" value="1" min="1" max="5">
+
+<button onclick="runSim()">Run Simulation</button>
+
+<h3 id="result"></h3>
+
+<script>
+
+let data = [];
+
+fetch("freight_index_daily.json")
+.then(res => res.json())
+.then(json => {
+  data = json.series;
+  renderChart();
+});
+
+function renderChart() {
+  const ctx = document.getElementById('chart');
+  const labels = data.map(d => d.d);
+  const values = data.map(d => d.v);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Freight Index Proxy',
+        data: values,
+        borderColor: '#4da6ff',
+        borderWidth: 1,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      scales: {
+        x: { display: false },
+        y: { beginAtZero: false }
+      }
+    }
+  });
+}
+
+function runSim() {
+  const entry = document.getElementById("entryDate").value;
+  const exit = document.getElementById("exitDate").value;
+  const direction = document.getElementById("direction").value;
+  const leverage = parseFloat(document.getElementById("leverage").value);
+
+  const entryObj = data.find(d => d.d === entry);
+  const exitObj = data.find(d => d.d === exit);
+
+  if (!entryObj || !exitObj) {
+    alert("Select valid trading dates from the dataset.");
+    return;
+  }
+
+  let r = (exitObj.v - entryObj.v) / entryObj.v;
+  if (direction === "short") r = -r;
+
+  const pnl = 10000 * leverage * r;
+
+  document.getElementById("result").innerText =
+    "P&L: $" + pnl.toFixed(2);
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "derived_from": "freight_index_daily.json",
+    "generated_at": "2026-02-18T21:41:26Z",
+    "assumptions": {
+      "trading_days_per_year": 252,
+      "log_returns": true
+    }
+  },
+  "stats": {
+    "last_value": 2899.87,
+    "last_date": "2026-02-18",
+    "vol": {
+      "vol_30d_ann": 0.5099,
+      "vol_90d_ann": 0.4491,
+      "vol_365d_ann": 0.4358
+    },
+    "drawdowns": {
+      "top10": [
+        {
+          "peak_date": "2009-01-05",
+          "trough_date": "2019-11-08",
+          "recovery_date": null,
+          "peak_value": 20341.13,
+          "trough_value": 1240.15,
+          "max_drawdown": -0.939,
+          "days_to_trough": 2829,
+          "days_to_recover": null
+        },
+        {
+          "peak_date": "2007-10-26",
+          "trough_date": "2008-06-06",
+          "recovery_date": "2008-10-08",
+          "peak_value": 14192.74,
+          "trough_value": 4309.17,
+          "max_drawdown": -0.6964,
+          "days_to_trough": 160,
+          "days_to_recover": 88
+        },
+        {
+          "peak_date": "2008-10-27",
+          "trough_date": "2008-12-01",
+          "recovery_date": "2008-12-25",
+          "peak_value": 18083.04,
+          "trough_value": 8742.72,
+          "max_drawdown": -0.5165,
+          "days_to_trough": 25,
+          "days_to_recover": 18
+        },
+        {
+          "peak_date": "2001-04-16",
+          "trough_date": "2002-12-31",
+          "recovery_date": "2003-07-01",
+          "peak_value": 1941.51,
+          "trough_value": 1050.06,
+          "max_drawdown": -0.4592,
+          "days_to_trough": 446,
+          "days_to_recover": 130
+        },
+        {
+          "peak_date": "2000-07-03",
+          "trough_date": "2001-01-11",
+          "recovery_date": "2001-04-13",
+          "peak_value": 1859.01,
+          "trough_value": 1165.17,
+          "max_drawdown": -0.3732,
+          "days_to_trough": 138,
+          "days_to_recover": 66
+        },
+        {
+          "peak_date": "2006-03-22",
+          "trough_date": "2006-04-25",
+          "recovery_date": "2006-08-04",
+          "peak_value": 9491.03,
+          "trough_value": 6204.72,
+          "max_drawdown": -0.3463,
+          "days_to_trough": 24,
+          "days_to_recover": 73
+        },
+        {
+          "peak_date": "2005-05-26",
+          "trough_date": "2005-07-29",
+          "recovery_date": "2005-11-14",
+          "peak_value": 8115.54,
+          "trough_value": 5310.76,
+          "max_drawdown": -0.3456,
+          "days_to_trough": 46,
+          "days_to_recover": 76
+        },
+        {
+          "peak_date": "2004-12-17",
+          "trough_date": "2005-02-23",
+          "recovery_date": "2005-04-19",
+          "peak_value": 5483.4,
+          "trough_value": 3639.42,
+          "max_drawdown": -0.3363,
+          "days_to_trough": 48,
+          "days_to_recover": 39
+        },
+        {
+          "peak_date": "2007-09-04",
+          "trough_date": "2007-10-16",
+          "recovery_date": "2007-10-23",
+          "peak_value": 12194.35,
+          "trough_value": 8152.24,
+          "max_drawdown": -0.3315,
+          "days_to_trough": 30,
+          "days_to_recover": 5
+        },
+        {
+          "peak_date": "2005-11-17",
+          "trough_date": "2005-12-20",
+          "recovery_date": "2006-02-16",
+          "peak_value": 8525.88,
+          "trough_value": 5807.06,
+          "max_drawdown": -0.3189,
+          "days_to_trough": 23,
+          "days_to_recover": 42
+        }
+      ],
+      "max_drawdown_all_time": -0.939
+    },
+    "moves": {
+      "worst_1d": {
+        "date": "2021-09-30",
+        "ret": -0.147
+      },
+      "best_1d": {
+        "date": "2015-04-16",
+        "ret": 0.2068
+      },
+      "worst_5d": {
+        "end_date": "2007-12-12",
+        "ret": -0.3567
+      },
+      "best_5d": {
+        "end_date": "2007-10-23",
+        "ret": 0.5868
+      },
+      "worst_30d": {
+        "end_date": "2008-01-11",
+        "ret": -0.5591
+      },
+      "best_30d": {
+        "end_date": "2009-01-05",
+        "ret": 1.1115
+      }
+    },
+    "mean_levels": {
+      "mean_1y": 2891.68,
+      "mean_3y": 2777.0,
+      "median_3y": 2843.51
+    }
+  }
+}
